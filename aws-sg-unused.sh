@@ -3,13 +3,16 @@
 MYSELF="${0##*/}"
 MYSELF="${MYSELF%.*}"
 
+ [[ -n $1 ]] && PROFILE="--profile ${1}"
+
 #all SGs
 SG_ALL=$(mktemp /tmp/tmp_${MYSELF}.XXXXX)
-aws ec2 describe-security-groups --query 'SecurityGroups[*].GroupId'  --output text | tr '\t' '\n'> $SG_ALL
+aws ${PROFILE} ec2 describe-security-groups --query 'SecurityGroups[*].GroupId'  --output text | tr '\t' '\n'> $SG_ALL
 # used SGs
 SG_USED_ORIG=$(mktemp /tmp/tmp_${MYSELF}.XXXXX)
-aws ec2 describe-instances --query 'Reservations[*].Instances[*].SecurityGroups[*].GroupId' --output text | tr '\t' '\n' > $SG_USED_ORIG
-aws rds describe-db-instances --query 'DBInstances[].VpcSecurityGroups[].VpcSecurityGroupId[]' --output text | tr '\t' '\n' >> $SG_USED_ORIG
+aws ${PROFILE} ec2 describe-instances --query 'Reservations[*].Instances[*].SecurityGroups[*].GroupId' --output text | tr '\t' '\n' > $SG_USED_ORIG
+aws ${PROFILE} rds describe-db-instances --query 'DBInstances[].VpcSecurityGroups[].VpcSecurityGroupId[]' --output text | tr '\t' '\n' >> $SG_USED_ORIG
+aws ${PROFILE} elasticache describe-cache-clusters --query 'CacheClusters[].SecurityGroups[].SecurityGroupId' --output text | tr '\t' '\n' >> $SG_USED_ORIG
 SG_USED=$(mktemp /tmp/tmp_${MYSELF}.XXXXX)
 sort $SG_USED_ORIG | uniq > $SG_USED
 #unused SGs
@@ -18,7 +21,7 @@ comm -23 $SG_ALL $SG_USED | tr '\n' ' ' > $SG_UNUSED
 
 for ThisSG in $(<$SG_UNUSED); do
 ## load aws json to bash array
-  SGDATA="$(aws ec2 describe-security-groups --group-ids $ThisSG --output json )"
+  SGDATA="$(aws ${PROFILE} ec2 describe-security-groups --group-ids $ThisSG --output json )"
 
 #  SG_GroupId=$(echo "$SGDATA" | jq .SecurityGroups[0].GroupId)
 #  SG_GroupName=$(echo "$SGDATA" | jq .SecurityGroups[0].GroupName)
@@ -42,6 +45,7 @@ for ThisSG in $(<$SG_UNUSED); do
     done
   done
   echo "- - - - - - - - - - - - - - - - - - - -"
-  echo ""
 done
+
+rm $SG_ALL $SG_USED_ORIG $SG_USED
 
