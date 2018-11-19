@@ -1,5 +1,7 @@
 #!/usr/bin/python 
  
+## sourced from: https://aws.amazon.com/premiumsupport/knowledge-center/adfs-grant-ad-access-api-cli/
+
 import sys 
 import boto.sts 
 import boto.s3 
@@ -34,7 +36,7 @@ sslverification = True
  
 # idpentryurl: The initial URL that starts the authentication process. 
 idpentryurl = 'https://my.authen2cate.com/a2c/si/saml/idp/222'
-
+idpentryurl = 'https://adfs.example.com/adfs/ls/IdpInitiatedSignOn.aspx?loginToRp=urn:amazon:webservices'
  
 ##########################################################################
 
