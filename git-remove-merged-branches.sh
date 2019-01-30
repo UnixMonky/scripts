@@ -1,7 +1,7 @@
 #!/bin/bash
 
 myBranch=$(git rev-parse --abbrev-ref HEAD)
-branchList="$(git branch --merged | egrep -v "master|${myBranch}|production")"
+branchList="$(git branch --merged | egrep -v "master|${myBranch}|production|dev|upstream")"
 
 echo "List of branches merged into ${myBranch}"
 echo "----------------------------------------"
